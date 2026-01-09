@@ -16,7 +16,7 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/health", "/h2-console/**").permitAll()
+                        .requestMatchers("/health", "/h2-console/**", "/auth/signup").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(Customizer.withDefaults());

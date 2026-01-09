@@ -50,6 +50,17 @@ public class User {
     }
 
 
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+        if(this.role == null) {
+            this.role = UserRole.USER;
+        }
+    }
+
+
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
