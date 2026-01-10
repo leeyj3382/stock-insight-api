@@ -10,14 +10,20 @@ import com.leeyujun.stockinsightapi.api.auth.dto.SignupRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.leeyujun.stockinsightapi.common.exception.InvalidCredentialException;
+import com.leeyujun.stockinsightapi.common.security.JwtTokenProvider;
+
 @Service
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    private final JwtTokenProvider jwtTokenProvider;
+
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @Transactional
@@ -31,5 +37,16 @@ public class UserService {
 
         return userRepository.save(user);
 
+    }
+
+    @Transactional
+    public String login(String email, String password){
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(InvalidCredentialException::new);
+        if (!passwordEncoder.matches(password, user.getPasswordHash())){
+            throw new InvalidCredentialException();
+        }
+
+        return jwtTokenProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole().name());
     }
 }

@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.leeyujun.stockinsightapi.api.auth.dto.LoginRequest;
+import com.leeyujun.stockinsightapi.api.auth.dto.LoginResponse;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -26,5 +29,11 @@ public class AuthController {
     public ResponseEntity<SignupResponse> signup(@Valid @RequestBody SignupRequest req){
         User user = userService.signup(req);
         return ResponseEntity.ok(new SignupResponse(user.getId(), user.getEmail(), user.getNickname()));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest req){
+        String token = userService.login(req.getEmail(), req.getPassword());
+        return ResponseEntity.ok(new LoginResponse(token));
     }
 }
