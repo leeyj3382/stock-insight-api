@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>StockInsight API - Local Console</title>
+    <style>
+        body { font-family: system-ui, -apple-system, Arial, sans-serif; margin: 24px; line-height: 1.4; }
+        h1 { margin: 0 0 12px; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 14px; max-width: 980px; }
+        .card { border: 1px solid #ddd; border-radius: 10px; padding: 14px; }
+        .row { display: grid; grid-template-columns: 160px 1fr; gap: 10px; align-items: center; margin: 8px 0; }
+        input, textarea, select { width: 100%; padding: 8px; border: 1px solid #bbb; border-radius: 8px; }
+        textarea { min-height: 90px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+        button { padding: 8px 12px; border: 1px solid #333; background: #fff; border-radius: 8px; cursor: pointer; }
+        button:hover { background: #f2f2f2; }
+        .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .muted { color: #666; font-size: 13px; }
+        .ok { color: #0a7; }
+        .err { color: #c00; }
+        pre { background: #0b1020; color: #e7e7e7; padding: 12px; border-radius: 10px; overflow: auto; }
+        code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    </style>
+</head>
+<body>
+<h1>StockInsight API - Local Console</h1>
+<div class="muted">브라우저에서 JWT 로그인/리포트 CRUD 테스트용 페이지</div>
+
+<div class="grid">
+
+    <div class="card">
+        <h2>0) Server</h2>
+        <div class="row">
+            <div>Base URL</div>
+            <input id="baseUrl" value="http://localhost:8080" />
+        </div>
+        <div class="btns">
+            <button onclick="health()">GET /health</button>
+        </div>
+        <div class="muted">※ 만약 403이 뜨면 SecurityConfig에서 <code>/</code> 접근이 막힌 상태일 수 있음. (이 페이지는 static이라 보통 열리지만, 막히면 permitAll 경로에 <code>/</code>, <code>/index.html</code> 추가)</div>
+    </div>
+
+    <div class="card">
+        <h2>1) Auth</h2>
+
+        <h3>Signup</h3>
+        <div class="row">
+            <div>Email</div>
+            <input id="suEmail" placeholder="test@example.com" />
+        </div>
+        <div class="row">
+            <div>Password</div>
+            <input id="suPw" type="password" placeholder="password123" />
+        </div>
+        <div class="row">
+            <div>Nickname</div>
+            <input id="suNick" placeholder="yujun" />
+        </div>
+        <div class="btns">
+            <button onclick="signup()">POST /auth/signup</button>
+        </div>
+
+        <hr />
+
+        <h3>Login</h3>
+        <div class="row">
+            <div>Email</div>
+            <input id="liEmail" placeholder="test@example.com" />
+        </div>
+        <div class="row">
+            <div>Password</div>
+            <input id="liPw" type="password" placeholder="password123" />
+        </div>
+        <div class="btns">
+            <button onclick="login()">POST /auth/login</button>
+            <button onclick="me()">GET /me</button>
+            <button onclick="clearToken()">Clear Token</button>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+            <div>Access Token</div>
+            <textarea id="token" placeholder="로그인하면 자동으로 채워짐"></textarea>
+        </div>
+        <div class="muted">Authorization 헤더: <code>Bearer &lt;token&gt;</code></div>
+    </div>
+
+    <div class="card">
+        <h2>2) Reports</h2>
+
+        <h3>Create</h3>
+        <div class="row">
+            <div>Ticker</div>
+            <input id="rpTicker" value="AAPL" />
+        </div>
+        <div class="row">
+            <div>Market</div>
+            <select id="rpMarket">
+                <option value="US" selected>US</option>
+                <option value="KR">KR</option>
+            </select>
+        </div>
+        <div class="row">
+            <div>Summary</div>
+            <input id="rpSummary" value="아이폰 수요 둔화 우려 vs 서비스 매출 성장" />
+        </div>
+        <div class="row">
+            <div>inputJson</div>
+            <textarea id="rpInputJson">{ "ticker":"AAPL", "horizon":"1m", "focus":"risk" }</textarea>
+        </div>
+        <div class="row">
+            <div>sourcesJson</div>
+            <textarea id="rpSourcesJson">{ "price": { "source": "yahoo", "asOf":"2026-01-10" }, "news": [] }</textarea>
+        </div>
+        <div class="row">
+            <div>resultJson</div>
+            <textarea id="rpResultJson">{ "overview":"...", "bull":{}, "base":{}, "bear":{} }</textarea>
+        </div>
+        <div class="btns">
+            <button onclick="createReport()">POST /reports</button>
+        </div>
+
+        <hr />
+
+        <h3>List / Get / Delete</h3>
+        <div class="btns">
+            <button onclick="listReports()">GET /reports</button>
+        </div>
+        <div class="row">
+            <div>Report ID</div>
+            <input id="rpId" placeholder="예: 1" />
+        </div>
+        <div class="btns">
+            <button onclick="getReport()">GET /reports/{id}</button>
+            <button onclick="deleteReport()">DELETE /reports/{id}</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Output</h2>
+        <div id="status" class="muted">Ready.</div>
+        <pre id="out"><code>// responses will appear here</code></pre>
+    </div>
+
+</div>
+
+<script>
+    function $(id){ return document.getElementById(id); }
+
+    function baseUrl(){
+        return $("baseUrl").value.replace(/\/+$/,'');
+    }
+
+    function setStatus(msg, ok=true){
+        const el = $("status");
+        el.className = ok ? "ok" : "err";
+        el.textContent = msg;
+    }
+
+    function pretty(obj){
+        try { return JSON.stringify(obj, null, 2); } catch(e) { return String(obj); }
+    }
+
+    async function request(method, path, body=null, auth=false){
+        const url = baseUrl() + path;
+
+        const headers = { "Content-Type": "application/json" };
+        if(auth){
+            const t = $("token").value.trim();
+            if(!t){
+                setStatus("토큰이 비어있음: 먼저 로그인하세요.", false);
+                throw new Error("No token");
+            }
+            headers["Authorization"] = "Bearer " + t;
+        }
+
+        const opts = { method, headers };
+        if(body !== null){
+            opts.body = JSON.stringify(body);
+        }
+
+        const res = await fetch(url, opts);
+        const text = await res.text();
+
+        let data;
+        try { data = text ? JSON.parse(text) : null; }
+        catch(e){ data = text; }
+
+        $("out").textContent =
+            `HTTP ${res.status} ${res.statusText}\n` +
+            `URL: ${url}\n\n` +
+            (typeof data === "string" ? data : pretty(data));
+
+        if(!res.ok){
+            setStatus(`❌ ${method} ${path} -> ${res.status}`, false);
+        }else{
+            setStatus(`✅ ${method} ${path} -> ${res.status}`, true);
+        }
+        return { res, data };
+    }
+
+    // --- Server ---
+    async function health(){
+        await request("GET", "/health");
+    }
+
+    // --- Auth ---
+    async function signup(){
+        const body = {
+            email: $("suEmail").value.trim(),
+            password: $("suPw").value,
+            nickname: $("suNick").value.trim()
+        };
+        await request("POST", "/auth/signup", body);
+    }
+
+    async function login(){
+        const body = {
+            email: $("liEmail").value.trim(),
+            password: $("liPw").value
+        };
+        const { data } = await request("POST", "/auth/login", body);
+
+        // { "accessToken": "..." } 기대
+        if(data && data.accessToken){
+            $("token").value = data.accessToken;
+            setStatus("✅ 로그인 성공: 토큰 저장됨", true);
+        }
+    }
+
+    async function me(){
+        await request("GET", "/me", null, true);
+    }
+
+    function clearToken(){
+        $("token").value = "";
+        setStatus("Token cleared.", true);
+        $("out").textContent = "// responses will appear here";
+    }
+
+    // --- Reports ---
+    function parseJsonOrFail(textareaId){
+        const raw = $(textareaId).value.trim();
+        if(!raw) return "{}";
+        // 서버는 String으로 저장할 거라 "문자열"로 넘겨야 함.
+        // 하지만 사용자가 JSON을 입력하니, 일단 JSON parse 검증만 하고,
+        // 다시 string으로 원문을 저장하는 방식으로 전송.
+        JSON.parse(raw);
+        return raw;
+    }
+
+    async function createReport(){
+        const body = {
+            ticker: $("rpTicker").value.trim(),
+            market: $("rpMarket").value,
+            summary: $("rpSummary").value.trim(),
+            inputJson: parseJsonOrFail("rpInputJson"),
+            sourcesJson: parseJsonOrFail("rpSourcesJson"),
+            resultJson: parseJsonOrFail("rpResultJson")
+        };
+        await request("POST", "/reports", body, true);
+    }
+
+    async function listReports(){
+        await request("GET", "/reports", null, true);
+    }
+
+    async function getReport(){
+        const id = $("rpId").value.trim();
+        if(!id){ setStatus("Report ID를 입력하세요.", false); return; }
+        await request("GET", `/reports/${encodeURIComponent(id)}`, null, true);
+    }
+
+    async function deleteReport(){
+        const id = $("rpId").value.trim();
+        if(!id){ setStatus("Report ID를 입력하세요.", false); return; }
+        await request("DELETE", `/reports/${encodeURIComponent(id)}`, null, true);
+    }
+</script>
+</body>
+</html>
