@@ -20,11 +20,13 @@
         .err { color: #c00; }
         pre { background: #0b1020; color: #e7e7e7; padding: 12px; border-radius: 10px; overflow: auto; }
         code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+        hr { border: 0; border-top: 1px solid #ddd; margin: 14px 0; }
     </style>
 </head>
+
 <body>
 <h1>StockInsight API - Local Console</h1>
-<div class="muted">브라우저에서 JWT 로그인/리포트 CRUD 테스트용 페이지</div>
+<div class="muted">브라우저에서 회원가입/로그인/JWT + 리포트 테스트</div>
 
 <div class="grid">
 
@@ -37,7 +39,6 @@
         <div class="btns">
             <button onclick="health()">GET /health</button>
         </div>
-        <div class="muted">※ 만약 403이 뜨면 SecurityConfig에서 <code>/</code> 접근이 막힌 상태일 수 있음. (이 페이지는 static이라 보통 열리지만, 막히면 permitAll 경로에 <code>/</code>, <code>/index.html</code> 추가)</div>
     </div>
 
     <div class="card">
@@ -50,7 +51,7 @@
         </div>
         <div class="row">
             <div>Password</div>
-            <input id="suPw" type="password" placeholder="password123" />
+            <input id="suPw" type="password" placeholder="8자 이상" />
         </div>
         <div class="row">
             <div>Nickname</div>
@@ -58,6 +59,7 @@
         </div>
         <div class="btns">
             <button onclick="signup()">POST /auth/signup</button>
+            <button onclick="signupAndLogin()">Signup + Login</button>
         </div>
 
         <hr />
@@ -69,7 +71,7 @@
         </div>
         <div class="row">
             <div>Password</div>
-            <input id="liPw" type="password" placeholder="password123" />
+            <input id="liPw" type="password" placeholder="password" />
         </div>
         <div class="btns">
             <button onclick="login()">POST /auth/login</button>
@@ -79,52 +81,37 @@
 
         <div class="row" style="margin-top:12px;">
             <div>Access Token</div>
-            <textarea id="token" placeholder="로그인하면 자동으로 채워짐"></textarea>
+            <textarea id="token" placeholder="로그인 성공 시 자동 입력됨 (여기에 수동으로 넣어도 OK)"></textarea>
         </div>
-        <div class="muted">Authorization 헤더: <code>Bearer &lt;token&gt;</code></div>
+        <div class="muted">요청 시 Authorization 헤더: <code>Bearer &lt;token&gt;</code></div>
     </div>
 
     <div class="card">
         <h2>2) Reports</h2>
 
-        <h3>Create</h3>
+        <h3>Generate (GPT)</h3>
+        <div class="muted">
+            종목명 입력 → <code>POST /reports/generate</code>로 GPT 리포트 생성/저장.
+        </div>
         <div class="row">
             <div>Ticker</div>
-            <input id="rpTicker" value="AAPL" />
+            <input id="genTicker" value="AAPL" />
         </div>
         <div class="row">
             <div>Market</div>
-            <select id="rpMarket">
+            <select id="genMarket">
                 <option value="US" selected>US</option>
                 <option value="KR">KR</option>
             </select>
         </div>
-        <div class="row">
-            <div>Summary</div>
-            <input id="rpSummary" value="아이폰 수요 둔화 우려 vs 서비스 매출 성장" />
-        </div>
-        <div class="row">
-            <div>inputJson</div>
-            <textarea id="rpInputJson">{ "ticker":"AAPL", "horizon":"1m", "focus":"risk" }</textarea>
-        </div>
-        <div class="row">
-            <div>sourcesJson</div>
-            <textarea id="rpSourcesJson">{ "price": { "source": "yahoo", "asOf":"2026-01-10" }, "news": [] }</textarea>
-        </div>
-        <div class="row">
-            <div>resultJson</div>
-            <textarea id="rpResultJson">{ "overview":"...", "bull":{}, "base":{}, "bear":{} }</textarea>
-        </div>
         <div class="btns">
-            <button onclick="createReport()">POST /reports</button>
+            <button onclick="generateReport()">POST /reports/generate</button>
+            <button onclick="listReports()">GET /reports</button>
         </div>
 
         <hr />
 
-        <h3>List / Get / Delete</h3>
-        <div class="btns">
-            <button onclick="listReports()">GET /reports</button>
-        </div>
+        <h3>Get / Delete</h3>
         <div class="row">
             <div>Report ID</div>
             <input id="rpId" placeholder="예: 1" />
@@ -167,7 +154,7 @@
         if(auth){
             const t = $("token").value.trim();
             if(!t){
-                setStatus("토큰이 비어있음: 먼저 로그인하세요.", false);
+                setStatus("토큰이 비어있음: 로그인 후 다시 시도하세요.", false);
                 throw new Error("No token");
             }
             headers["Authorization"] = "Bearer " + t;
@@ -210,7 +197,13 @@
             password: $("suPw").value,
             nickname: $("suNick").value.trim()
         };
-        await request("POST", "/auth/signup", body);
+        const { data } = await request("POST", "/auth/signup", body);
+
+        // signup 성공하면 login 입력란에 자동 채움
+        if(body.email) $("liEmail").value = body.email;
+        if(body.password) $("liPw").value = body.password;
+
+        return data;
     }
 
     async function login(){
@@ -220,11 +213,18 @@
         };
         const { data } = await request("POST", "/auth/login", body);
 
-        // { "accessToken": "..." } 기대
+        // LoginResponse: { accessToken: "..." }
         if(data && data.accessToken){
             $("token").value = data.accessToken;
             setStatus("✅ 로그인 성공: 토큰 저장됨", true);
+        } else {
+            setStatus("❌ 로그인 응답에 accessToken이 없음", false);
         }
+    }
+
+    async function signupAndLogin(){
+        await signup();
+        await login();
     }
 
     async function me(){
@@ -238,26 +238,12 @@
     }
 
     // --- Reports ---
-    function parseJsonOrFail(textareaId){
-        const raw = $(textareaId).value.trim();
-        if(!raw) return "{}";
-        // 서버는 String으로 저장할 거라 "문자열"로 넘겨야 함.
-        // 하지만 사용자가 JSON을 입력하니, 일단 JSON parse 검증만 하고,
-        // 다시 string으로 원문을 저장하는 방식으로 전송.
-        JSON.parse(raw);
-        return raw;
-    }
-
-    async function createReport(){
+    async function generateReport(){
         const body = {
-            ticker: $("rpTicker").value.trim(),
-            market: $("rpMarket").value,
-            summary: $("rpSummary").value.trim(),
-            inputJson: parseJsonOrFail("rpInputJson"),
-            sourcesJson: parseJsonOrFail("rpSourcesJson"),
-            resultJson: parseJsonOrFail("rpResultJson")
+            ticker: $("genTicker").value.trim(),
+            market: $("genMarket").value
         };
-        await request("POST", "/reports", body, true);
+        await request("POST", "/reports/generate", body, true);
     }
 
     async function listReports(){

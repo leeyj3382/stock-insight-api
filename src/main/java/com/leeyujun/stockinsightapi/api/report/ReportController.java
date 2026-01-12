@@ -9,6 +9,9 @@ import com.leeyujun.stockinsightapi.domain.report.service.ReportService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import com.leeyujun.stockinsightapi.api.report.dto.GenerateReportRequest;
+
+
 import java.util.List;
 
 @RestController
@@ -25,6 +28,13 @@ public class ReportController {
     public ReportResponse create(@Valid @RequestBody CreateReportRequest req) {
         Long userId = AuthUtil.currentUserId();
         Report r = reportService.create(userId, req);
+        return toResponse(r);
+    }
+
+    @PostMapping("/generate")
+    public ReportResponse generate(@Valid @RequestBody GenerateReportRequest req) {
+        Long userId = AuthUtil.currentUserId();
+        Report r = reportService.generateWithGpt(userId, req);
         return toResponse(r);
     }
 
