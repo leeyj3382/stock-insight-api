@@ -128,6 +128,42 @@
         <pre id="out"><code>// responses will appear here</code></pre>
     </div>
 
+    <div class="card">
+        <h2>3) Posts</h2>
+
+        <h3>Create</h3>
+        <div class="row">
+            <div>Title</div>
+            <input id="psTitle" value="첫 글" />
+        </div>
+        <div class="row">
+            <div>Content</div>
+            <textarea id="psContent">게시글 내용입니다.</textarea>
+        </div>
+        <div class="btns">
+            <button onclick="createPost()">POST /posts</button>
+        </div>
+
+        <hr />
+
+        <h3>List / Get / Update / Delete</h3>
+        <div class="btns">
+            <button onclick="listPosts()">GET /posts</button>
+        </div>
+
+        <div class="row">
+            <div>Post ID</div>
+            <input id="psId" placeholder="예: 1" />
+        </div>
+
+        <div class="btns">
+            <button onclick="getPost()">GET /posts/{id}</button>
+            <button onclick="updatePost()">PUT /posts/{id}</button>
+            <button onclick="deletePost()">DELETE /posts/{id}</button>
+        </div>
+    </div>
+
+
 </div>
 
 <script>
@@ -260,6 +296,42 @@
         const id = $("rpId").value.trim();
         if(!id){ setStatus("Report ID를 입력하세요.", false); return; }
         await request("DELETE", `/reports/${encodeURIComponent(id)}`, null, true);
+    }
+
+    // --- Posts ---
+    async function createPost(){
+        const body = {
+            title: $("psTitle").value.trim(),
+            content: $("psContent").value
+        };
+        await request("POST", "/posts", body, true);
+    }
+
+    async function listPosts(){
+        await request("GET", "/posts", null, true);
+    }
+
+    async function getPost(){
+        const id = $("psId").value.trim();
+        if(!id){ setStatus("Post ID를 입력하세요.", false); return; }
+        await request("GET", `/posts/${encodeURIComponent(id)}`, null, true);
+    }
+
+    async function updatePost(){
+        const id = $("psId").value.trim();
+        if(!id){ setStatus("Post ID를 입력하세요.", false); return; }
+
+        const body = {
+            title: $("psTitle").value.trim(),
+            content: $("psContent").value
+        };
+        await request("PUT", `/posts/${encodeURIComponent(id)}`, body, true);
+    }
+
+    async function deletePost(){
+        const id = $("psId").value.trim();
+        if(!id){ setStatus("Post ID를 입력하세요.", false); return; }
+        await request("DELETE", `/posts/${encodeURIComponent(id)}`, null, true);
     }
 </script>
 </body>
