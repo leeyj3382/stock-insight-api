@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>StockInsight API - Local Console</title>
+    <style>
+        body { font-family: system-ui, -apple-system, Arial, sans-serif; margin: 24px; line-height: 1.4; }
+        h1 { margin: 0 0 12px; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 14px; max-width: 980px; }
+        .card { border: 1px solid #ddd; border-radius: 10px; padding: 14px; }
+        .row { display: grid; grid-template-columns: 160px 1fr; gap: 10px; align-items: center; margin: 8px 0; }
+        input, textarea, select { width: 100%; padding: 8px; border: 1px solid #bbb; border-radius: 8px; }
+        textarea { min-height: 90px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+        button { padding: 8px 12px; border: 1px solid #333; background: #fff; border-radius: 8px; cursor: pointer; }
+        button:hover { background: #f2f2f2; }
+        .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .muted { color: #666; font-size: 13px; }
+        .ok { color: #0a7; }
+        .err { color: #c00; }
+        pre { background: #0b1020; color: #e7e7e7; padding: 12px; border-radius: 10px; overflow: auto; }
+        code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+        hr { border: 0; border-top: 1px solid #ddd; margin: 14px 0; }
+    </style>
+</head>
+
+<body>
+<h1>StockInsight API - Local Console</h1>
+<div class="muted">브라우저에서 회원가입/로그인/JWT + 리포트 테스트</div>
+
+<div class="grid">
+
+    <div class="card">
+        <h2>0) Server</h2>
+        <div class="row">
+            <div>Base URL</div>
+            <input id="baseUrl" value="http://localhost:8080" />
+        </div>
+        <div class="btns">
+            <button onclick="health()">GET /health</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>1) Auth</h2>
+
+        <h3>Signup</h3>
+        <div class="row">
+            <div>Email</div>
+            <input id="suEmail" placeholder="test@example.com" />
+        </div>
+        <div class="row">
+            <div>Password</div>
+            <input id="suPw" type="password" placeholder="8자 이상" />
+        </div>
+        <div class="row">
+            <div>Nickname</div>
+            <input id="suNick" placeholder="yujun" />
+        </div>
+        <div class="btns">
+            <button onclick="signup()">POST /auth/signup</button>
+            <button onclick="signupAndLogin()">Signup + Login</button>
+        </div>
+
+        <hr />
+
+        <h3>Login</h3>
+        <div class="row">
+            <div>Email</div>
+            <input id="liEmail" placeholder="test@example.com" />
+        </div>
+        <div class="row">
+            <div>Password</div>
+            <input id="liPw" type="password" placeholder="password" />
+        </div>
+        <div class="btns">
+            <button onclick="login()">POST /auth/login</button>
+            <button onclick="me()">GET /me</button>
+            <button onclick="clearToken()">Clear Token</button>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+            <div>Access Token</div>
+            <textarea id="token" placeholder="로그인 성공 시 자동 입력됨 (여기에 수동으로 넣어도 OK)"></textarea>
+        </div>
+        <div class="muted">요청 시 Authorization 헤더: <code>Bearer &lt;token&gt;</code></div>
+    </div>
+
+    <div class="card">
+        <h2>2) Reports</h2>
+
+        <h3>Generate (GPT)</h3>
+        <div class="muted">
+            종목명 입력 → <code>POST /reports/generate</code>로 GPT 리포트 생성/저장.
+        </div>
+        <div class="row">
+            <div>Ticker</div>
+            <input id="genTicker" value="AAPL" />
+        </div>
+        <div class="row">
+            <div>Market</div>
+            <select id="genMarket">
+                <option value="US" selected>US</option>
+                <option value="KR">KR</option>
+            </select>
+        </div>
+        <div class="btns">
+            <button onclick="generateReport()">POST /reports/generate</button>
+            <button onclick="listReports()">GET /reports</button>
+        </div>
+
+        <hr />
+
+        <h3>Get / Delete</h3>
+        <div class="row">
+            <div>Report ID</div>
+            <input id="rpId" placeholder="예: 1" />
+        </div>
+        <div class="btns">
+            <button onclick="getReport()">GET /reports/{id}</button>
+            <button onclick="deleteReport()">DELETE /reports/{id}</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Output</h2>
+        <div id="status" class="muted">Ready.</div>
+        <pre id="out"><code>// responses will appear here</code></pre>
+    </div>
+
+</div>
+
+<script>
+    function $(id){ return document.getElementById(id); }
+
+    function baseUrl(){
+        return $("baseUrl").value.replace(/\/+$/,'');
+    }
+
+    function setStatus(msg, ok=true){
+        const el = $("status");
+        el.className = ok ? "ok" : "err";
+        el.textContent = msg;
+    }
+
+    function pretty(obj){
+        try { return JSON.stringify(obj, null, 2); } catch(e) { return String(obj); }
+    }
+
+    async function request(method, path, body=null, auth=false){
+        const url = baseUrl() + path;
+
+        const headers = { "Content-Type": "application/json" };
+        if(auth){
+            const t = $("token").value.trim();
+            if(!t){
+                setStatus("토큰이 비어있음: 로그인 후 다시 시도하세요.", false);
+                throw new Error("No token");
+            }
+            headers["Authorization"] = "Bearer " + t;
+        }
+
+        const opts = { method, headers };
+        if(body !== null){
+            opts.body = JSON.stringify(body);
+        }
+
+        const res = await fetch(url, opts);
+        const text = await res.text();
+
+        let data;
+        try { data = text ? JSON.parse(text) : null; }
+        catch(e){ data = text; }
+
+        $("out").textContent =
+            `HTTP ${res.status} ${res.statusText}\n` +
+            `URL: ${url}\n\n` +
+            (typeof data === "string" ? data : pretty(data));
+
+        if(!res.ok){
+            setStatus(`❌ ${method} ${path} -> ${res.status}`, false);
+        }else{
+            setStatus(`✅ ${method} ${path} -> ${res.status}`, true);
+        }
+        return { res, data };
+    }
+
+    // --- Server ---
+    async function health(){
+        await request("GET", "/health");
+    }
+
+    // --- Auth ---
+    async function signup(){
+        const body = {
+            email: $("suEmail").value.trim(),
+            password: $("suPw").value,
+            nickname: $("suNick").value.trim()
+        };
+        const { data } = await request("POST", "/auth/signup", body);
+
+        // signup 성공하면 login 입력란에 자동 채움
+        if(body.email) $("liEmail").value = body.email;
+        if(body.password) $("liPw").value = body.password;
+
+        return data;
+    }
+
+    async function login(){
+        const body = {
+            email: $("liEmail").value.trim(),
+            password: $("liPw").value
+        };
+        const { data } = await request("POST", "/auth/login", body);
+
+        // LoginResponse: { accessToken: "..." }
+        if(data && data.accessToken){
+            $("token").value = data.accessToken;
+            setStatus("✅ 로그인 성공: 토큰 저장됨", true);
+        } else {
+            setStatus("❌ 로그인 응답에 accessToken이 없음", false);
+        }
+    }
+
+    async function signupAndLogin(){
+        await signup();
+        await login();
+    }
+
+    async function me(){
+        await request("GET", "/me", null, true);
+    }
+
+    function clearToken(){
+        $("token").value = "";
+        setStatus("Token cleared.", true);
+        $("out").textContent = "// responses will appear here";
+    }
+
+    // --- Reports ---
+    async function generateReport(){
+        const body = {
+            ticker: $("genTicker").value.trim(),
+            market: $("genMarket").value
+        };
+        await request("POST", "/reports/generate", body, true);
+    }
+
+    async function listReports(){
+        await request("GET", "/reports", null, true);
+    }
+
+    async function getReport(){
+        const id = $("rpId").value.trim();
+        if(!id){ setStatus("Report ID를 입력하세요.", false); return; }
+        await request("GET", `/reports/${encodeURIComponent(id)}`, null, true);
+    }
+
+    async function deleteReport(){
+        const id = $("rpId").value.trim();
+        if(!id){ setStatus("Report ID를 입력하세요.", false); return; }
+        await request("DELETE", `/reports/${encodeURIComponent(id)}`, null, true);
+    }
+</script>
+</body>
+</html>
