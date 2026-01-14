@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign up | Stock Insight</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body>
+<header class="site-header">
+    <a href="/index.html" class="logo">SI<span>•</span> Stock Insight</a>
+    <nav class="nav desktop-only">
+        <a href="/index.html">Main</a>
+        <a href="/reports.html" class="auth-user hidden">Reports</a>
+        <a href="/posts.html" class="auth-user hidden">Board</a>
+    </nav>
+    <div class="nav-actions">
+        <div class="auth-guest" style="display: flex; gap: 0.5rem;">
+            <a class="button ghost" href="/login.html">Login</a>
+        </div>
+        <div class="auth-user hidden" style="display: flex; gap: 0.5rem;">
+            <span id="userNameDisplay" style="align-self:center; font-weight:600; margin-right:0.5rem; color:var(--primary);"></span>
+            <button class="button ghost" onclick="logout()">Logout</button>
+        </div>
+        <button id="menuToggle" class="menu-toggle">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+    </div>
+</header>
+
+<nav id="mobileMenu" class="mobile-nav">
+    <a href="/index.html">Main</a>
+    <a href="/reports.html">Reports</a>
+    <a href="/posts.html">Board</a>
+</nav>
+
+<main class="page narrow">
+    <section class="panel">
+        <div class="panel-header">
+            <h1>회원가입</h1>
+            <p>회원가입 후 바로 로그인하여 리포트를 생성할 수 있습니다.</p>
+        </div>
+        <form id="signupForm" class="form">
+            <label>
+                이메일
+                <input type="email" name="email" placeholder="you@example.com" required />
+            </label>
+            <label>
+                비밀번호 (8자 이상)
+                <input type="password" name="password" minlength="8" required />
+            </label>
+            <label>
+                닉네임
+                <input type="text" name="nickname" minlength="2" maxlength="20" required />
+            </label>
+            <button class="button primary" type="submit">회원가입</button>
+            <p class="form-help">이미 계정이 있다면 <a href="/login.html">로그인</a>하세요.</p>
+        </form>
+        <div id="signupMessage" class="notice"></div>
+    </section>
+</main>
+
+<script src="/js/app.js"></script>
+<script>
+    bindSignupForm();
+</script>
+</body>
+</html>

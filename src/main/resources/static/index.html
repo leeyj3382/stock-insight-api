@@ -1,338 +1,97 @@
 <!doctype html>
 <html lang="ko">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>StockInsight API - Local Console</title>
-    <style>
-        body { font-family: system-ui, -apple-system, Arial, sans-serif; margin: 24px; line-height: 1.4; }
-        h1 { margin: 0 0 12px; }
-        .grid { display: grid; grid-template-columns: 1fr; gap: 14px; max-width: 980px; }
-        .card { border: 1px solid #ddd; border-radius: 10px; padding: 14px; }
-        .row { display: grid; grid-template-columns: 160px 1fr; gap: 10px; align-items: center; margin: 8px 0; }
-        input, textarea, select { width: 100%; padding: 8px; border: 1px solid #bbb; border-radius: 8px; }
-        textarea { min-height: 90px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
-        button { padding: 8px 12px; border: 1px solid #333; background: #fff; border-radius: 8px; cursor: pointer; }
-        button:hover { background: #f2f2f2; }
-        .btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-        .muted { color: #666; font-size: 13px; }
-        .ok { color: #0a7; }
-        .err { color: #c00; }
-        pre { background: #0b1020; color: #e7e7e7; padding: 12px; border-radius: 10px; overflow: auto; }
-        code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
-        hr { border: 0; border-top: 1px solid #ddd; margin: 14px 0; }
-    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stock Insight</title>
+    <link rel="stylesheet" href="/css/styles.css" />
 </head>
-
 <body>
-<h1>StockInsight API - Local Console</h1>
-<div class="muted">브라우저에서 회원가입/로그인/JWT + 리포트 테스트</div>
+<header class="site-header">
+    <a href="/index.html" class="logo">SI<span>•</span> Stock Insight</a>
 
-<div class="grid">
+    <nav class="nav desktop-only">
+        <a href="/index.html" class="active">Main</a>
+        <a href="/reports.html" class="auth-user hidden">Reports</a>
+        <a href="/posts.html" class="auth-user hidden">Board</a>
+    </nav>
 
-    <div class="card">
-        <h2>0) Server</h2>
-        <div class="row">
-            <div>Base URL</div>
-            <input id="baseUrl" value="http://localhost:8080" />
+    <div class="nav-actions">
+        <div class="auth-guest" style="display: flex; gap: 0.5rem;">
+            <a class="button ghost" href="/login.html">Login</a>
+            <a class="button primary" href="/signup.html">Sign up</a>
         </div>
-        <div class="btns">
-            <button onclick="health()">GET /health</button>
+        <div class="auth-user hidden" style="display: flex; gap: 0.5rem;">
+            <span id="userNameDisplay" style="align-self:center; font-weight:600; margin-right:0.5rem; color:var(--primary);"></span>
+            <button class="button ghost" onclick="logout()">Logout</button>
         </div>
+        <button id="menuToggle" class="menu-toggle">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
     </div>
+</header>
 
-    <div class="card">
-        <h2>1) Auth</h2>
+<nav id="mobileMenu" class="mobile-nav">
+    <a href="/index.html">Main</a>
+    <a href="/reports.html" class="auth-user hidden">Reports</a>
+    <a href="/posts.html" class="auth-user hidden">Board</a>
+</nav>
 
-        <h3>Signup</h3>
-        <div class="row">
-            <div>Email</div>
-            <input id="suEmail" placeholder="test@example.com" />
+<main class="page">
+    <section class="hero">
+        <div class="hero-copy">
+            <div class="auth-guest">
+                <p class="eyebrow">Smart Investment</p>
+                <h1>데이터로 만드는<br />확실한 투자 리포트</h1>
+                <p class="lead">
+                    AI가 복잡한 시장 데이터를 분석하여<br>
+                    읽기 쉬운 투자 리포트를 즉시 생성해 드립니다.
+                </p>
+                <div class="cta-row">
+                    <a class="button primary" href="/signup.html">무료로 시작하기</a>
+                </div>
+            </div>
+
+            <div class="auth-user hidden">
+                <p class="eyebrow">Welcome Back</p>
+                <h1>오늘의 시장을<br />분석할 준비가 되셨나요?</h1>
+                <p class="lead">
+                    새로운 리포트를 생성하거나<br>팀원들과 인사이트를 공유하세요.
+                </p>
+                <div class="cta-row" style="display: flex; justify-content: center; gap: 1rem;">
+                    <a class="button primary" href="/reports.html">리포트 만들기</a>
+                    <a class="button ghost" href="/posts.html">게시판 가기</a>
+                </div>
+            </div>
         </div>
-        <div class="row">
-            <div>Password</div>
-            <input id="suPw" type="password" placeholder="8자 이상" />
-        </div>
-        <div class="row">
-            <div>Nickname</div>
-            <input id="suNick" placeholder="yujun" />
-        </div>
-        <div class="btns">
-            <button onclick="signup()">POST /auth/signup</button>
-            <button onclick="signupAndLogin()">Signup + Login</button>
-        </div>
+    </section>
 
-        <hr />
+    <section class="feature-grid">
+        <article class="feature-card">
+            <h3>⚡️ 초고속 리포트</h3>
+            <p>티커만 입력하면 AI가 핵심 요약을 제공합니다.</p>
+            <a href="/reports.html" class="text-link auth-user hidden">시작하기 &rarr;</a>
+            <a href="/login.html" class="text-link auth-guest">로그인 후 이용 &rarr;</a>
+        </article>
+        <article class="feature-card">
+            <h3>📂 아카이빙</h3>
+            <p>생성된 리포트는 클라우드에 안전하게 저장됩니다.</p>
+        </article>
+        <article class="feature-card">
+            <h3>🤝 인사이트 공유</h3>
+            <p>커뮤니티 게시판을 통해 정보를 공유하세요.</p>
+            <a href="/posts.html" class="text-link auth-user hidden">게시판 &rarr;</a>
+            <a href="/login.html" class="text-link auth-guest">로그인 후 이용 &rarr;</a>
+        </article>
+    </section>
+</main>
 
-        <h3>Login</h3>
-        <div class="row">
-            <div>Email</div>
-            <input id="liEmail" placeholder="test@example.com" />
-        </div>
-        <div class="row">
-            <div>Password</div>
-            <input id="liPw" type="password" placeholder="password" />
-        </div>
-        <div class="btns">
-            <button onclick="login()">POST /auth/login</button>
-            <button onclick="me()">GET /me</button>
-            <button onclick="clearToken()">Clear Token</button>
-        </div>
+<footer style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.8rem; margin-top: 3rem; border-top: 1px solid var(--border);">
+    <p>© 2026 Stock Insight. Powered by Lee.</p>
+</footer>
 
-        <div class="row" style="margin-top:12px;">
-            <div>Access Token</div>
-            <textarea id="token" placeholder="로그인 성공 시 자동 입력됨 (여기에 수동으로 넣어도 OK)"></textarea>
-        </div>
-        <div class="muted">요청 시 Authorization 헤더: <code>Bearer &lt;token&gt;</code></div>
-    </div>
-
-    <div class="card">
-        <h2>2) Reports</h2>
-
-        <h3>Generate (GPT)</h3>
-        <div class="muted">
-            종목명 입력 → <code>POST /reports/generate</code>로 GPT 리포트 생성/저장.
-        </div>
-        <div class="row">
-            <div>Ticker</div>
-            <input id="genTicker" value="AAPL" />
-        </div>
-        <div class="row">
-            <div>Market</div>
-            <select id="genMarket">
-                <option value="US" selected>US</option>
-                <option value="KR">KR</option>
-            </select>
-        </div>
-        <div class="btns">
-            <button onclick="generateReport()">POST /reports/generate</button>
-            <button onclick="listReports()">GET /reports</button>
-        </div>
-
-        <hr />
-
-        <h3>Get / Delete</h3>
-        <div class="row">
-            <div>Report ID</div>
-            <input id="rpId" placeholder="예: 1" />
-        </div>
-        <div class="btns">
-            <button onclick="getReport()">GET /reports/{id}</button>
-            <button onclick="deleteReport()">DELETE /reports/{id}</button>
-        </div>
-    </div>
-
-    <div class="card">
-        <h2>Output</h2>
-        <div id="status" class="muted">Ready.</div>
-        <pre id="out"><code>// responses will appear here</code></pre>
-    </div>
-
-    <div class="card">
-        <h2>3) Posts</h2>
-
-        <h3>Create</h3>
-        <div class="row">
-            <div>Title</div>
-            <input id="psTitle" value="첫 글" />
-        </div>
-        <div class="row">
-            <div>Content</div>
-            <textarea id="psContent">게시글 내용입니다.</textarea>
-        </div>
-        <div class="btns">
-            <button onclick="createPost()">POST /posts</button>
-        </div>
-
-        <hr />
-
-        <h3>List / Get / Update / Delete</h3>
-        <div class="btns">
-            <button onclick="listPosts()">GET /posts</button>
-        </div>
-
-        <div class="row">
-            <div>Post ID</div>
-            <input id="psId" placeholder="예: 1" />
-        </div>
-
-        <div class="btns">
-            <button onclick="getPost()">GET /posts/{id}</button>
-            <button onclick="updatePost()">PUT /posts/{id}</button>
-            <button onclick="deletePost()">DELETE /posts/{id}</button>
-        </div>
-    </div>
-
-
-</div>
-
-<script>
-    function $(id){ return document.getElementById(id); }
-
-    function baseUrl(){
-        return $("baseUrl").value.replace(/\/+$/,'');
-    }
-
-    function setStatus(msg, ok=true){
-        const el = $("status");
-        el.className = ok ? "ok" : "err";
-        el.textContent = msg;
-    }
-
-    function pretty(obj){
-        try { return JSON.stringify(obj, null, 2); } catch(e) { return String(obj); }
-    }
-
-    async function request(method, path, body=null, auth=false){
-        const url = baseUrl() + path;
-
-        const headers = { "Content-Type": "application/json" };
-        if(auth){
-            const t = $("token").value.trim();
-            if(!t){
-                setStatus("토큰이 비어있음: 로그인 후 다시 시도하세요.", false);
-                throw new Error("No token");
-            }
-            headers["Authorization"] = "Bearer " + t;
-        }
-
-        const opts = { method, headers };
-        if(body !== null){
-            opts.body = JSON.stringify(body);
-        }
-
-        const res = await fetch(url, opts);
-        const text = await res.text();
-
-        let data;
-        try { data = text ? JSON.parse(text) : null; }
-        catch(e){ data = text; }
-
-        $("out").textContent =
-            `HTTP ${res.status} ${res.statusText}\n` +
-            `URL: ${url}\n\n` +
-            (typeof data === "string" ? data : pretty(data));
-
-        if(!res.ok){
-            setStatus(`❌ ${method} ${path} -> ${res.status}`, false);
-        }else{
-            setStatus(`✅ ${method} ${path} -> ${res.status}`, true);
-        }
-        return { res, data };
-    }
-
-    // --- Server ---
-    async function health(){
-        await request("GET", "/health");
-    }
-
-    // --- Auth ---
-    async function signup(){
-        const body = {
-            email: $("suEmail").value.trim(),
-            password: $("suPw").value,
-            nickname: $("suNick").value.trim()
-        };
-        const { data } = await request("POST", "/auth/signup", body);
-
-        // signup 성공하면 login 입력란에 자동 채움
-        if(body.email) $("liEmail").value = body.email;
-        if(body.password) $("liPw").value = body.password;
-
-        return data;
-    }
-
-    async function login(){
-        const body = {
-            email: $("liEmail").value.trim(),
-            password: $("liPw").value
-        };
-        const { data } = await request("POST", "/auth/login", body);
-
-        // LoginResponse: { accessToken: "..." }
-        if(data && data.accessToken){
-            $("token").value = data.accessToken;
-            setStatus("✅ 로그인 성공: 토큰 저장됨", true);
-        } else {
-            setStatus("❌ 로그인 응답에 accessToken이 없음", false);
-        }
-    }
-
-    async function signupAndLogin(){
-        await signup();
-        await login();
-    }
-
-    async function me(){
-        await request("GET", "/me", null, true);
-    }
-
-    function clearToken(){
-        $("token").value = "";
-        setStatus("Token cleared.", true);
-        $("out").textContent = "// responses will appear here";
-    }
-
-    // --- Reports ---
-    async function generateReport(){
-        const body = {
-            ticker: $("genTicker").value.trim(),
-            market: $("genMarket").value
-        };
-        await request("POST", "/reports/generate", body, true);
-    }
-
-    async function listReports(){
-        await request("GET", "/reports", null, true);
-    }
-
-    async function getReport(){
-        const id = $("rpId").value.trim();
-        if(!id){ setStatus("Report ID를 입력하세요.", false); return; }
-        await request("GET", `/reports/${encodeURIComponent(id)}`, null, true);
-    }
-
-    async function deleteReport(){
-        const id = $("rpId").value.trim();
-        if(!id){ setStatus("Report ID를 입력하세요.", false); return; }
-        await request("DELETE", `/reports/${encodeURIComponent(id)}`, null, true);
-    }
-
-    // --- Posts ---
-    async function createPost(){
-        const body = {
-            title: $("psTitle").value.trim(),
-            content: $("psContent").value
-        };
-        await request("POST", "/posts", body, true);
-    }
-
-    async function listPosts(){
-        await request("GET", "/posts", null, true);
-    }
-
-    async function getPost(){
-        const id = $("psId").value.trim();
-        if(!id){ setStatus("Post ID를 입력하세요.", false); return; }
-        await request("GET", `/posts/${encodeURIComponent(id)}`, null, true);
-    }
-
-    async function updatePost(){
-        const id = $("psId").value.trim();
-        if(!id){ setStatus("Post ID를 입력하세요.", false); return; }
-
-        const body = {
-            title: $("psTitle").value.trim(),
-            content: $("psContent").value
-        };
-        await request("PUT", `/posts/${encodeURIComponent(id)}`, body, true);
-    }
-
-    async function deletePost(){
-        const id = $("psId").value.trim();
-        if(!id){ setStatus("Post ID를 입력하세요.", false); return; }
-        await request("DELETE", `/posts/${encodeURIComponent(id)}`, null, true);
-    }
-</script>
+<script src="/js/app.js"></script>
 </body>
 </html>
