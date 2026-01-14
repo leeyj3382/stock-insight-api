@@ -22,7 +22,20 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/index.html","/health", "/h2-console/**", "/auth/**","/css/**", "/js/**","/images/**", "/favicon.ico").permitAll()
+                        .requestMatchers("/",
+                                "/index.html",
+                                "/login.html",
+                                "/signup.html",
+                                "/dashboard.html",
+                                "/reports.html",
+                                "/posts.html",
+                                "/health",
+                                "/h2-console/**",
+                                "/auth/**",
+                                "/css/**",
+                                "/js/**",
+                                "/images/**",
+                                "/favicon.ico").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)

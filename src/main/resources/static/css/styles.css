@@ -1,0 +1,237 @@
+/* styles.css */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
+:root {
+    /* Color Palette */
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --bg-body: #f8fafc;
+    --bg-card: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --danger: #ef4444;
+    --success: #10b981;
+
+    /* Spacing & Radius */
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --container-width: 1024px;
+    --header-height: 70px;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* --- Utility Classes --- */
+.hidden { display: none !important; }
+
+/* --- Layout --- */
+.site-header {
+    height: var(--header-height);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+}
+
+.page {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem;
+    min-height: calc(100vh - var(--header-height));
+}
+
+.page.narrow {
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* --- Navigation & Header Balancing --- */
+/* 로고와 우측 버튼 영역이 같은 비율(flex:1)을 가져야 가운데 메뉴가 정중앙에 옵니다 */
+
+.logo {
+    flex: 1; /* 좌측 공간 점유 */
+    font-weight: 800;
+    font-size: 1.5rem;
+    color: var(--primary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+.logo span { color: var(--text-main); margin-left: 4px; }
+
+.nav {
+    /* 가운데 메뉴는 내용만큼만 크기 차지 */
+    flex: 0 0 auto;
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+}
+
+.nav a {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: color 0.2s;
+}
+.nav a:hover, .nav a.active { color: var(--primary); }
+
+.nav-actions {
+    flex: 1; /* 우측 공간 점유 */
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: flex-end; /* 내용은 오른쪽 끝으로 정렬 */
+}
+
+/* Mobile Toggle Button */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    color: var(--text-main);
+}
+
+/* Mobile Navigation Dropdown */
+.mobile-nav {
+    display: none;
+    position: absolute;
+    top: var(--header-height);
+    left: 0;
+    right: 0;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: var(--shadow-md);
+    z-index: 99;
+}
+.mobile-nav.open { display: flex; animation: slideDown 0.3s ease-out; }
+.mobile-nav a {
+    text-decoration: none;
+    color: var(--text-main);
+    font-weight: 500;
+    padding: 0.75rem 0.5rem;
+    display: block;
+    border-bottom: 1px solid #f1f5f9;
+}
+.mobile-nav a:last-child { border-bottom: none; }
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive Logic */
+@media (max-width: 768px) {
+    .site-header { padding: 0 1rem; }
+    .nav.desktop-only { display: none; }
+    .menu-toggle { display: flex; align-items: center; justify-content: center; }
+    .nav-actions { gap: 0.5rem; }
+    /* 모바일에서는 로고 글씨가 너무 길면 줄바꿈 될 수 있으니 폰트 조절 */
+    .logo { font-size: 1.3rem; }
+}
+
+/* --- Typography --- */
+h1, h2, h3 { margin-top: 0; color: var(--text-main); letter-spacing: -0.02em; }
+h1 { font-size: 2.25rem; font-weight: 700; margin-bottom: 0.5rem; }
+h2 { font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem; }
+p { margin-bottom: 1rem; color: var(--text-muted); }
+.muted { font-size: 0.875rem; color: var(--text-muted); }
+
+/* --- Components --- */
+.panel, .feature-card, .detail {
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.feature-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.panel-header { margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+.panel-header p { margin: 0; }
+
+/* --- Forms --- */
+.form { display: grid; gap: 1.5rem; }
+.form.two-column { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); align-items: end; }
+label { display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
+input, textarea, select {
+    width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); font-size: 1rem; font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s; background: #fff;
+}
+input:focus, textarea:focus, select:focus {
+    outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+textarea { resize: vertical; min-height: 120px; }
+
+/* --- Buttons --- */
+.button {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0.75rem 1.5rem; border-radius: var(--radius-sm); font-weight: 600;
+    font-size: 0.95rem; cursor: pointer; transition: all 0.2s; text-decoration: none;
+    border: 1px solid transparent; line-height: 1;
+}
+.button.primary { background-color: var(--primary); color: white; }
+.button.primary:hover { background-color: var(--primary-hover); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25); }
+.button.ghost { background-color: white; border-color: var(--border); color: var(--text-main); }
+.button.ghost:hover { background-color: var(--bg-body); border-color: var(--text-muted); }
+
+.text-link { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.5rem; font-size: 0.9rem; }
+.text-link:hover { color: var(--primary); }
+.text-link.active { color: var(--primary); font-weight: 600; }
+
+/* --- Lists --- */
+.list { display: flex; flex-direction: column; gap: 1rem; }
+.list-item {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--bg-card); padding: 1.5rem; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); transition: border-color 0.2s;
+}
+.list-item:hover { border-color: var(--primary); }
+.list-item h4 { margin: 0 0 0.25rem 0; font-size: 1.1rem; }
+.list-actions { display: flex; gap: 0.5rem; }
+@media (max-width: 600px) {
+    .list-item { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .list-actions { width: 100%; justify-content: flex-end; }
+}
+
+/* --- Hero --- */
+.hero {
+    text-align: center; padding: 4rem 1rem; background: linear-gradient(180deg, #fff 0%, var(--bg-body) 100%);
+    margin-bottom: 3rem; border-bottom: 1px solid var(--border);
+}
+.hero-copy h1 { font-size: 3rem; margin-bottom: 1rem; line-height: 1.2; }
+.hero-copy .lead { font-size: 1.25rem; max-width: 600px; margin: 0 auto 2rem; }
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+
+/* --- Utility --- */
+.notice { margin-top: 1rem; font-size: 0.9rem; color: var(--success); font-weight: 500; min-height: 1.5em; }
