@@ -4,7 +4,8 @@ WORKDIR /app
 
 COPY . .
 
-RUN ./gradlew bootJar
+RUN sed -i 's/\r$//' ./gradlew && chmod +x ./gradlew
+RUN ./gradlew bootJar --no-daemon
 
 EXPOSE 8080
 
