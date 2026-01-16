@@ -6,7 +6,8 @@ public record PostListItemResponse (
         Long id,
         String title,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        boolean isOwner
 ){}
 
 

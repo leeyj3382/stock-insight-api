@@ -33,10 +33,24 @@ public class PostService {
     }
 
     @Transactional(readOnly = true)
+    public List<Post> listAll() {
+        return postRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+
+
+    @Transactional(readOnly = true)
     public Post getMine(Long userId, Long postId) {
         return postRepository.findByIdAndUserId(postId, userId)
                 .orElseThrow(() -> new RuntimeException("post not found"));
     }
+
+    @Transactional(readOnly = true)
+    public Post getPublic(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("post not found"));
+    }
+
 
     @Transactional
     public Post updateMine(Long  userId, Long postId, UpdatePostRequest req){

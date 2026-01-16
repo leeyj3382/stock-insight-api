@@ -7,5 +7,6 @@ public record PostResponse (
         String title,
         String content,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        boolean isOwner
 ){}
