@@ -26,14 +26,28 @@ public class PostController {
     public PostResponse create(@Valid @RequestBody CreatePostRequest req) {
         Long userId = AuthUtil.currentUserId();
         Post p = postService.create(userId, req);
-        return toResponse(p);
+        return toResponse(p, userId);
     }
 
     @GetMapping
     public List<PostListItemResponse> listMine() {
         Long userId = AuthUtil.currentUserId();
         return postService.listMine(userId).stream()
-                .map(p -> new PostListItemResponse(p.getId(), p.getTitle(), p.getCreatedAt(), p.getUpdatedAt()))
+                .map(p -> new PostListItemResponse(p.getId(), p.getTitle(), p.getCreatedAt(), p.getUpdatedAt(), true))
+                .toList();
+    }
+
+    @GetMapping("/public")
+    public List<PostListItemResponse> listPublic() {
+        Long userId = AuthUtil.currentUserId();
+        return postService.listAll().stream()
+                .map(p -> new PostListItemResponse(
+                        p.getId(),
+                        p.getTitle(),
+                        p.getCreatedAt(),
+                        p.getUpdatedAt(),
+                        p.getUserId().equals(userId)
+                ))
                 .toList();
     }
 
@@ -41,14 +55,22 @@ public class PostController {
     public PostResponse getMine(@PathVariable Long id) {
         Long userId = AuthUtil.currentUserId();
         Post p = postService.getMine(userId, id);
-        return toResponse(p);
+        return toResponse(p, userId);
+    }
+
+
+    @GetMapping("/public/{id}")
+    public PostResponse getPublic(@PathVariable Long id) {
+        Long userId = AuthUtil.currentUserId();
+        Post p = postService.getPublic(id);
+        return toResponse(p, userId);
     }
 
     @PutMapping("/{id}")
     public PostResponse updateMine(@PathVariable Long id, @Valid @RequestBody UpdatePostRequest req) {
         Long userId = AuthUtil.currentUserId();
         Post p = postService.updateMine(userId, id, req);
-        return toResponse(p);
+        return toResponse(p, userId);
     }
 
     @DeleteMapping("/{id}")
@@ -57,13 +79,14 @@ public class PostController {
         postService.deleteMine(userId, id);
     }
 
-    private PostResponse toResponse(Post p) {
+    private PostResponse toResponse(Post p, Long userId) {
         return new PostResponse(
                 p.getId(),
                 p.getTitle(),
                 p.getContent(),
                 p.getCreatedAt(),
-                p.getUpdatedAt()
+                p.getUpdatedAt(),
+                p.getUserId().equals(userId)
         );
     }
 }

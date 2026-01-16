@@ -240,13 +240,29 @@ async function deleteReport(id) {
 function initPostsPage() {
     requireAuth();
     bindPostCreateForm();
+    loadAllPosts();
     loadPosts();
 }
 
-// [NEW] 게시글 목록 토글
-function togglePostList() {
+// [NEW] 전체 게시글 목록 토글
+function toggleAllPostList() {
+    const container = document.getElementById("allPostListContainer");
+    const btn = document.getElementById("allListToggleBtn");
+    if (!container || !btn) return;
+
+    if (container.classList.contains("hidden")) {
+        container.classList.remove("hidden");
+        btn.textContent = "▲ 접기";
+    } else {
+        container.classList.add("hidden");
+        btn.textContent = "▼ 펼치기";
+    }
+}
+
+// [NEW] 내 게시글 목록 토글
+function toggleMyPostList() {
     const container = document.getElementById("postListContainer");
-    const btn = document.getElementById("listToggleBtn");
+    const btn = document.getElementById("myListToggleBtn");
     if (!container || !btn) return;
 
     if (container.classList.contains("hidden")) {
@@ -272,10 +288,35 @@ function bindPostCreateForm() {
             }, true);
             message.textContent = "등록 완료!";
             form.reset();
+            loadAllPosts();
             loadPosts();
         } catch (err) { message.textContent = err.message; }
     });
 }
+
+async function loadAllPosts() {
+    const list = document.getElementById("allPostList");
+    if (!list) return;
+    try {
+        const posts = await apiRequest("GET", "/posts/public", null, true);
+        if (!posts.length) {
+            list.innerHTML = "<p class='muted'>게시글이 없습니다.</p>";
+            return;
+        }
+        list.innerHTML = posts.map(p => `
+            <div class="list-item">
+                <div style="flex:1; cursor:pointer;" onclick="viewPost(${p.id})">
+                    <h4 style="margin:0 0 0.25rem 0;">${p.title} ${p.isOwner ? "<span class='muted' style='font-size:0.8rem;'>(내 글)</span>" : ""}</h4>
+                    <span class="muted" style="font-size:0.85rem;">${new Date(p.createdAt).toLocaleDateString()}</span>
+                </div>
+                <div class="list-actions">
+                    <button class="button ghost" onclick="viewPost(${p.id})">보기</button>
+                </div>
+            </div>
+        `).join("");
+    } catch (e) { list.innerHTML = "로드 실패"; }
+}
+
 
 async function loadPosts() {
     const list = document.getElementById("postList");
@@ -306,7 +347,7 @@ async function loadPosts() {
 // [NEW] 게시글 상세 조회 (읽기 모드)
 async function viewPost(id) {
     try {
-        const post = await apiRequest("GET", `/posts/${id}`, null, true);
+        const post = await apiRequest("GET", `/posts/public/${id}`, null, true);
         const panel = document.getElementById("postDetailPanel");
 
         // 읽기 전용 HTML 주입
@@ -317,9 +358,15 @@ async function viewPost(id) {
                     <span class="muted">${new Date(post.createdAt).toLocaleString()}</span>
                 </div>
                 <div style="white-space:pre-wrap; line-height:1.6; font-size:1.05rem; min-height:150px;">${post.content}</div>
-                <div style="margin-top:2rem; padding-top:1rem; border-top:1px solid var(--border);">
-                    <button class="button ghost" onclick="editPostMode(${post.id})">수정하기</button>
-                </div>
+                ${post.isOwner ? `
+                    <div style="margin-top:2rem; padding-top:1rem; border-top:1px solid var(--border);">
+                        <button class="button ghost" onclick="editPostMode(${post.id})">수정하기</button>
+                    </div>
+                ` : `
+                    <div class="muted" style="margin-top:2rem; padding-top:1rem; border-top:1px solid var(--border); font-size:0.9rem;">
+                        작성자만 수정할 수 있습니다.
+                    </div>
+                `}
             </div>
         `;
         panel.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -356,6 +403,7 @@ async function editPostMode(id) {
                     content: formData.get("content"),
                 }, true);
                 alert("수정되었습니다.");
+                loadAllPosts();
                 loadPosts(); // 목록 갱신 (제목 변경 반영)
                 viewPost(id); // 다시 읽기 모드로 전환
             } catch (err) { alert(`수정 실패: ${err.message}`); }
@@ -370,6 +418,7 @@ async function deletePost(id) {
     if (!confirm("정말 삭제하시겠습니까?")) return;
     try {
         await apiRequest("DELETE", `/posts/${id}`, null, true);
+        loadAllPosts();
         loadPosts();
         // 상세 내용 초기화
         document.getElementById("postDetailPanel").innerHTML =
